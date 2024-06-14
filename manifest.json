@@ -1,20 +1,24 @@
 {
-    "manifest_version": 2,
-    "name": "URL Checker",
-    "version": "1.0",
-    "description": "Check if a clicked URL is in the blacklist, whitelist, or store in the gray list.",
-    "permissions": [
-      "tabs",
-      "activeTab",
-      "storage"
-    ],
-    "background": {
-      "scripts": ["background.js"]
-    },
-    "browser_action": {
-      "default_popup": "popup.html"
-    },
-    "icons": {
-      "48": "icons/icon-48.png"
-    }
+  "manifest_version": 2,
+  "name": "URL Checker",
+  "version": "1.0",
+  "description": "Check if a clicked URL is in the blacklist, whitelist, or store in the gray list.",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "notifications",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_popup": "popup.html"
+  },
+  "icons": {
+    "48": "icons/icon-48.png"
   }
+}

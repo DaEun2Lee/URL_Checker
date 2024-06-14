@@ -1,24 +1,30 @@
 let blacklist = [];
-let whitelist = [];
 
-// Load blacklist and whitelist from JSON files
-fetch(browser.runtime.getURL("lists/blacklist.json"))
-  .then(response => response.json())
+// Function to load JSON file
+function loadJsonFile(filePath) {
+  return fetch(browser.runtime.getURL(filePath))
+    .then(response => response.json());
+}
+
+// Load blacklist from JSON file
+loadJsonFile("lists/blacklist.json")
   .then(data => {
     blacklist = data;
+    console.log("Blacklist loaded successfully");
   })
   .catch(error => console.error("Error loading blacklist:", error));
 
-fetch(browser.runtime.getURL("lists/whitelist.json"))
-  .then(response => response.json())
-  .then(data => {
-    whitelist = data;
-  })
-  .catch(error => console.error("Error loading whitelist:", error));
-
-// Check if URL is in a list
+// Check if URL contains any string from a list
 function checkUrl(url, list) {
-  return list.includes(url);
+  // Extract domain from URL
+  const domain = url.split('/')[2]; // Assuming URLs are standard and start with http:// or https://
+
+  return list.some(item => {
+    if (domain.includes(item.domain)) {
+      return true;
+    }
+    return false;
+  });
 }
 
 // Store URL in gray list
@@ -32,18 +38,31 @@ function storeInGrayList(url) {
   });
 }
 
-// Handle tab updates
-browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete" && tab.active) {
-    const url = tab.url;
+// Show warning message
+function showWarning(url) {
+  browser.notifications.create({
+    "type": "basic",
+    "iconUrl": browser.runtime.getURL("icons/icon-48.png"),
+    "title": "Warning",
+    "message": `The URL ${url} is in the blacklist!`
+  });
+}
+
+// Handle web requests
+browser.webRequest.onBeforeRequest.addListener(
+  async (details) => {
+    const url = details.url;
 
     if (checkUrl(url, blacklist)) {
       console.log("URL is in the blacklist.");
-    } else if (checkUrl(url, whitelist)) {
-      console.log("URL is in the whitelist.");
+      showWarning(url);
+      return { cancel: true };
     } else {
-      console.log("URL is not in any list. Adding to gray list.");
+      console.log("URL is not in the blacklist.");
       storeInGrayList(url);
+      return { cancel: false };
     }
-  }
-});
+  },
+  { urls: ["<all_urls>"] },
+  ["blocking"]
+);
