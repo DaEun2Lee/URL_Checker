@@ -46,12 +46,21 @@ function showWarning(url) {
     "title": "Warning",
     "message": `The URL ${url} is in the blacklist!`
   });
+
+    // Handle button click event
+    browser.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+      if (notificationId && buttonIndex === 0) { // 'Continue' button clicked
+        browser.tabs.update(tabId, { url: url });
+        browser.notifications.clear(notificationId);
+      }
+    });
 }
 
 // Handle web requests
 browser.webRequest.onBeforeRequest.addListener(
   async (details) => {
     const url = details.url;
+    const tabId = details.tabId;
 
     if (checkUrl(url, blacklist)) {
       console.log("URL is in the blacklist.");
